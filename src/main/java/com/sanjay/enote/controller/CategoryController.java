@@ -30,7 +30,7 @@ public class CategoryController {
         return new ResponseEntity<>("Note Saved Category",HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @GetMapping("/get-category")
+    @GetMapping("/")
     public ResponseEntity<?> getAllCategory(){
         List<CategoryDto> allCategory = categoryService.getAllCategory();
         if (CollectionUtils.isEmpty(allCategory)){
@@ -47,4 +47,28 @@ public class CategoryController {
         }
         return new ResponseEntity<>(allCategory,HttpStatus.OK);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCategoryDetailsById(@PathVariable Integer id){
+        CategoryDto categoryDtoById=categoryService.getCategoryDetailsById(id);
+
+        if (ObjectUtils.isEmpty(categoryDtoById)){
+            return new ResponseEntity<>("Category not fount with Id: "+ id,HttpStatus.NOT_FOUND);
+            }
+        return new ResponseEntity<>(categoryDtoById,HttpStatus.OK);
+
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCategoryById(@PathVariable Integer id){
+        boolean deleteCategory=categoryService.deleteCategory(id);
+        if (deleteCategory){
+            return new ResponseEntity<>("Category deleted successflly",HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>("Category not deleted successflly",HttpStatus.INTERNAL_SERVER_ERROR);
+
+    }
+
+
 }

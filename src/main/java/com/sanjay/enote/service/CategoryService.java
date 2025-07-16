@@ -2,7 +2,6 @@ package com.sanjay.enote.service;
 
 import com.sanjay.enote.dto.CategoryDto;
 import com.sanjay.enote.dto.CategoryResponse;
-import com.sanjay.enote.entity.Category;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,4 +12,8 @@ public interface CategoryService {
     List<CategoryDto> getAllCategory();
 
     List<CategoryResponse> getActiveCategory();
+
+    CategoryDto getCategoryDetailsById(Integer id);
+
+    boolean deleteCategory(Integer id);
 }
