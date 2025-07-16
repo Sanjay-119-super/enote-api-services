@@ -1,22 +1,38 @@
 package com.sanjay.enote.serviceImpl;
 
+import com.sanjay.enote.dto.CategoryDto;
+import com.sanjay.enote.dto.CategoryResponse;
 import com.sanjay.enote.entity.Category;
 import com.sanjay.enote.repository.CategoryRepository;
 import com.sanjay.enote.service.CategoryService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImplementation implements CategoryService {
 
     @Autowired
+    private ModelMapper modelMapper;
+
+    @Autowired
     private CategoryRepository categoryRepo;
 
     @Override
-    public boolean saveCategory(Category category) {
+    public boolean saveCategory(CategoryDto categoryDto) {
+
+ /*       Category category = new Category();
+        category.setName(categoryDto.getName());
+        category.setDescription(categoryDto.getDescription());
+        category.setIsActive(categoryDto.getIsActive());
+*/
+        Category category = modelMapper.map(categoryDto, Category.class);
+
         category.setIsDeleted(false);
         category.setCreatedBy(1);
         Category savedCategory = categoryRepo.save(category);
@@ -27,8 +43,19 @@ public class CategoryServiceImplementation implements CategoryService {
     }
 
     @Override
-    public List<Category> getAllCategory() {
+    public List<CategoryDto> getAllCategory() {
         List<Category> categoryList = categoryRepo.findAll();
-        return categoryList;
+
+        List<CategoryDto> caegoryDtoList = categoryList.stream().map(category -> modelMapper.map(category, CategoryDto.class)).collect(Collectors.toList());
+
+        return caegoryDtoList;
+    }
+
+    @Override
+    public List<CategoryResponse> getActiveCategory() {
+        List<Category> categoryList = categoryRepo.findByIsActiveTrue();
+        List<CategoryResponse> collectList = categoryList.stream().map(category -> modelMapper.map(category, CategoryResponse.class)).collect(Collectors.toList());
+
+        return collectList;
     }
 }

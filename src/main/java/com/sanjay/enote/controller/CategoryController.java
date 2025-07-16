@@ -1,5 +1,7 @@
 package com.sanjay.enote.controller;
 
+import com.sanjay.enote.dto.CategoryDto;
+import com.sanjay.enote.dto.CategoryResponse;
 import com.sanjay.enote.entity.Category;
 import com.sanjay.enote.service.CategoryService;
 import jdk.nashorn.internal.objects.annotations.Getter;
@@ -20,7 +22,7 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @PostMapping("/save-category")
-    public ResponseEntity<?> saveCategory(@RequestBody Category category){
+    public ResponseEntity<?> saveCategory(@RequestBody CategoryDto category){
         boolean savedCategory = categoryService.saveCategory(category);
         if (savedCategory){
             return new ResponseEntity<>("Saved Category Successfully", HttpStatus.CREATED);
@@ -30,7 +32,16 @@ public class CategoryController {
 
     @GetMapping("/get-category")
     public ResponseEntity<?> getAllCategory(){
-        List<Category> allCategory = categoryService.getAllCategory();
+        List<CategoryDto> allCategory = categoryService.getAllCategory();
+        if (CollectionUtils.isEmpty(allCategory)){
+            return ResponseEntity.noContent().build();
+        }
+        return new ResponseEntity<>(allCategory,HttpStatus.OK);
+    }
+
+    @GetMapping("/get-active-category")
+    public ResponseEntity<?> getActiveCategory(){
+        List<CategoryResponse> allCategory = categoryService.getActiveCategory();
         if (CollectionUtils.isEmpty(allCategory)){
             return ResponseEntity.noContent().build();
         }
