@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,56 +26,68 @@ public class CategoryServiceImplementation implements CategoryService {
 
     @Override
     public boolean saveCategory(CategoryDto categoryDto) {
+        if (ObjectUtils.isEmpty(categoryDto.getCategoryId())) {
+            // CREATE new Category
+            Category category = modelMapper.map(categoryDto, Category.class);
+            category.setIsDeleted(false);
+            category.setCreatedBy(1);
+            category.setCreatedOn(new Date());
 
- /*       Category category = new Category();
-        category.setName(categoryDto.getName());
-        category.setDescription(categoryDto.getDescription());
-        category.setIsActive(categoryDto.getIsActive());
-*/
-        Category category = modelMapper.map(categoryDto, Category.class);
+            Category saved = categoryRepo.save(category);
+            return !ObjectUtils.isEmpty(saved);
+        } else {
+            //  UPDATE existing Category
+            return updateCategory(categoryDto);
+        }
+    }
 
-        category.setIsDeleted(false);
-        category.setCreatedBy(1);
-        Category savedCategory = categoryRepo.save(category);
-        if (ObjectUtils.isEmpty(savedCategory)){
+    //  Separate update logic: Update only specific fields safely
+    private boolean updateCategory(CategoryDto categoryDto) {
+        Optional<Category> optionalCategory = categoryRepo.findById(categoryDto.getCategoryId());
+        if (optionalCategory.isPresent()) {
+            Category existing = optionalCategory.get();
+
+            //  Only updating modifiable fields
+            existing.setName(categoryDto.getName());
+            existing.setDescription(categoryDto.getDescription());
+            existing.setIsActive(categoryDto.getIsActive());
+
+            existing.setUpdatedBy(1);
+            existing.setUpdatedOn(new Date());
+
+            categoryRepo.save(existing);
+            return true;
+        } else {
+            System.out.println("Update failed: Category ID not found: " + categoryDto.getCategoryId());
             return false;
         }
-        return true;
     }
 
     @Override
     public List<CategoryDto> getAllCategory() {
         List<Category> categoryList = categoryRepo.findAllByIsDeletedFalse();
-
-        List<CategoryDto> caegoryDtoList = categoryList.stream().map(category -> modelMapper.map(category, CategoryDto.class)).collect(Collectors.toList());
-
-        return caegoryDtoList;
+        return categoryList.stream()
+                .map(category -> modelMapper.map(category, CategoryDto.class))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<CategoryResponse> getActiveCategory() {
         List<Category> categoryList = categoryRepo.findByIsActiveTrueAndIsDeletedFalse();
-        List<CategoryResponse> collectList = categoryList.stream().map(category -> modelMapper.map(category, CategoryResponse.class)).collect(Collectors.toList());
-
-        return collectList;
+        return categoryList.stream()
+                .map(category -> modelMapper.map(category, CategoryResponse.class))
+                .collect(Collectors.toList());
     }
 
     @Override
     public CategoryDto getCategoryDetailsById(Integer id) {
         Optional<Category> byId = categoryRepo.findById(id);
-
-        if (byId.isPresent()){
-            Category category = byId.get();
-            return modelMapper.map(category,CategoryDto.class);
-        }
-        return null;
+        return byId.map(category -> modelMapper.map(category, CategoryDto.class)).orElse(null);
     }
 
     @Override
-
     public boolean deleteCategory(Integer id) {
         Optional<Category> findByCategory = categoryRepo.findByCategoryIdAndIsDeletedFalse(id);
-
         if (findByCategory.isPresent()) {
             Category category = findByCategory.get();
             category.setIsDeleted(true);
@@ -84,5 +96,4 @@ public class CategoryServiceImplementation implements CategoryService {
         }
         return false;
     }
-
 }
